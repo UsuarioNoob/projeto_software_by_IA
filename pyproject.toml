@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "severino-bot"
+version = "0.1.0"
+description = "Aplicação RAG para consulta de atos normativos."
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "chainlit",
+    "chromadb",
+    "llama-index-core",
+    "llama-index-embeddings-huggingface",
+    "pandas",
+    "openpyxl",
+    "xlrd",
+    "pyarrow",
+    "python-dotenv",
+    "requests",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-mock",
+    "responses",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+    "integration: testes que integram componentes locais",
+    "e2e: testes de ponta a ponta",
+    "evaluation: avaliação de qualidade do retrieval e RAG",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/severino_bot"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 80
