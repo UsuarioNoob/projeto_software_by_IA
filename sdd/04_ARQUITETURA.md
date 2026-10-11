@@ -49,14 +49,21 @@ ChromaDB
 ```text
 Pergunta
   |
-  v
-Embedding da pergunta
-  |
-  v
-Similarity Search
-  |
-  v
-Top-K
+  +-----------------------------+
+  |                             |
+  v                             v
+Busca textual em           Embedding da pergunta
+Assunto e Ementa                |
+  |                             v
+  |                       Similarity Search
+  |                             |
+  |                             v
+  |                      Top-K semântico
+  |                             |
+  +--------------+--------------+
+                 |
+                 v
+      Combinação sem duplicidades
   |
   v
 Contexto
@@ -70,3 +77,7 @@ LLM
   v
 Resposta
 ```
+
+Correspondências textuais diretas são priorizadas e podem superar o `Top-K`. A parcela semântica
+permanece limitada pela configuração `TOP_K`. O LLM valida se o contexto combinado realmente
+sustenta a resposta antes de qualquer fonte ser apresentada ao usuário.

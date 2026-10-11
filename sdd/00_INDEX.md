@@ -16,6 +16,7 @@ Este diretório contém a especificação de design do sistema RAG Severino BOT.
 10. `10_CRITERIOS_ACEITE.md`
 11. `11_DIRETRIZES_ENGENHARIA.md`
 12. `12_DECISOES_ARQUITETURAIS.md`
+13. `13_RESULTADOS_RAG.md`
 
 ## Objetivo
 

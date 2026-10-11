@@ -37,11 +37,15 @@ def test_chunk_possui_metadata_minima(
     assert chunk.metadata == {
         "tipo": "Provimento",
         "numero": "360/2026",
+        "assunto": "Cartório Acolhedor",
+        "ementa": "Institui diretrizes para atendimento acolhedor.",
         "situacao": "Vigente",
         "data_diario": "2026-01-15",
         "numero_diario": 1234,
         "link_web": "https://example.test/provimento-360-2026",
+        "documento_id": chunk.metadata["documento_id"],
     }
+    assert len(chunk.metadata["documento_id"]) == 64
 
 
 def test_ids_dos_chunks_sao_unicos_e_deterministicos(

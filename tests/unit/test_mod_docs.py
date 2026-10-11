@@ -102,6 +102,21 @@ def test_ignora_extensao_desconhecida(
     assert registros[0]["Tipo"] == "Provimento"
 
 
+def test_ignora_arquivo_temporario_do_excel(
+    pasta_documentos: Path,
+    documento_valido: dict[str, object],
+) -> None:
+    pd.DataFrame([documento_valido]).to_excel(
+        pasta_documentos / "atos.xlsx", index=False
+    )
+    (pasta_documentos / "~$atos.xlsx").write_bytes(b"arquivo-temporario-bloqueado")
+
+    registros = carregar_documentos(pasta_documentos)
+
+    assert len(registros) == 1
+    assert registros[0]["Número do Documento"] == "360/2026"
+
+
 def test_campo_obrigatorio_ausente_gera_schema_validation_error(
     pasta_documentos: Path,
     documento_valido: dict[str, object],

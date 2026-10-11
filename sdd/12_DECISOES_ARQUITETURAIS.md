@@ -37,3 +37,16 @@ schema_version
 ```
 
 **Motivo:** qualquer um desses fatores altera semanticamente o índice.
+
+---
+
+## ADR-005 — Preparação da base antes da interface
+
+**Decisão:** executar configuração, conexão com ChromaDB, validação do fingerprint e eventual
+reindexação no callback `on_app_startup` do Chainlit.
+
+**Motivo:** impedir que o usuário acesse um chat ainda indisponível, preparar recursos pesados uma
+única vez por processo e reutilizar o estado pronto entre conversas.
+
+**Consequência:** falhas de preparação são propagadas e interrompem o startup do servidor. O
+callback `on_chat_start` apenas associa o estado global já preparado à sessão do usuário.

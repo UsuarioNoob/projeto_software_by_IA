@@ -3,19 +3,46 @@
 ## Inicialização
 
 ```text
-main()
+chainlit run main.py
+  |
+  v
+registrar handlers
+  |
+  v
+on_app_startup()
   |
   v
 preparar_base_vetorial()
   |
-  +--> calcular fingerprint
+  +--> carregar configuração
   |
-  +--> comparar com fingerprint salvo
+  +--> conectar ao ChromaDB
   |
-  +--> reindexar ou reutilizar
+  +--> calcular e comparar fingerprint
+  |
+  +--> reindexar ou reutilizar índice
   |
   v
-iniciar_interface()
+base pronta
+  |
+  v
+servidor anuncia a URL e disponibiliza a interface
+```
+
+Uma falha na preparação interrompe o startup. O chat não deve ser disponibilizado
+sem uma base vetorial operacional.
+
+## Nova conversa
+
+```text
+on_chat_start()
+  |
+  +--> reutilizar configuração global
+  |
+  +--> reutilizar ChromaDB e modelo de embedding preparados
+  |
+  v
+habilitar interação da sessão
 ```
 
 ## Consulta

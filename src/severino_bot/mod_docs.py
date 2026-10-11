@@ -37,11 +37,22 @@ EXTENSOES_SUPORTADAS: Final[frozenset[str]] = frozenset(
 CHAVES_METADATA: Final[dict[str, str]] = {
     "Tipo": "tipo",
     "Número do Documento": "numero",
+    "Assunto": "assunto",
+    "Ementa": "ementa",
     "Situação": "situacao",
     "Data do Diário": "data_diario",
     "Número Diário": "numero_diario",
     "Link web": "link_web",
 }
+
+
+def arquivo_suportado(caminho: Path) -> bool:
+    """Identifica documentos válidos, ignorando arquivos temporários de editores."""
+    return (
+        caminho.is_file()
+        and not caminho.name.startswith("~$")
+        and caminho.suffix.lower() in EXTENSOES_SUPORTADAS
+    )
 
 
 def _carregar_dataframe(caminho: Path) -> pd.DataFrame:
@@ -135,7 +146,7 @@ def carregar_documentos(diretorio: Path) -> list[dict[str, object]]:
         (
             caminho
             for caminho in caminho_diretorio.iterdir()
-            if caminho.is_file() and caminho.suffix.lower() in EXTENSOES_SUPORTADAS
+            if arquivo_suportado(caminho)
         ),
         key=lambda caminho: caminho.name.casefold(),
     )
@@ -239,6 +250,7 @@ def criar_chunks(
         texto = _texto_indexavel(registro)
         metadata = _metadata_do_registro(registro)
         documento_id = _id_documento(registro, indice_registro)
+        metadata["documento_id"] = documento_id
         # A metadata é aplicada aos TextNode finais. Incluí-la no Document
         # temporário faria o SentenceSplitter descontar seus tokens do espaço
         # disponível, mesmo com include_metadata=False.

@@ -6,8 +6,8 @@
 |---|---:|---|
 | Tipo | Sim | Conteúdo + metadata |
 | Número do Documento | Sim | Conteúdo + metadata |
-| Assunto | Sim | Conteúdo |
-| Ementa | Sim | Conteúdo |
+| Assunto | Sim | Conteúdo + metadata + recuperação textual |
+| Ementa | Sim | Conteúdo + metadata + recuperação textual |
 | Situação | Sim | Conteúdo + metadata |
 | Data do Diário | Sim | Metadata |
 | Número Diário | Sim | Metadata |
@@ -29,12 +29,18 @@ Situação: <valor>
 {
   "tipo": "...",
   "numero": "...",
+  "assunto": "...",
+  "ementa": "...",
   "situacao": "...",
   "data_diario": "...",
   "numero_diario": "...",
-  "link_web": "..."
+  "link_web": "...",
+  "documento_id": "..."
 }
 ```
+
+`documento_id` é calculado de forma determinística para identificar o registro de origem, remover
+duplicidades na apresentação e manter a rastreabilidade entre chunks do mesmo ato.
 
 ## Normalização
 

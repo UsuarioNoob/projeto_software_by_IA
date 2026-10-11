@@ -8,5 +8,6 @@ def main() -> None:
     iniciar_interface()
 
 
-if __name__ == "__main__":
-    main()
+# O Chainlit carrega o arquivo por importação, sem executá-lo como ``__main__``.
+# O registro precisa ocorrer durante o carregamento do módulo.
+main()
