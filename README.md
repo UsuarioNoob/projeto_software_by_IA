@@ -2,7 +2,7 @@
 
 Assistente RAG (*Retrieval-Augmented Generation*) para consultas em linguagem natural sobre atos normativos armazenados em arquivos estruturados.
 
-O Severino BOT carrega e valida os documentos, cria uma base vetorial persistente no ChromaDB, combina busca textual por **Assunto/Ementa** com busca semântica e utiliza um modelo acessado pelo OpenRouter para produzir respostas fundamentadas exclusivamente no conteúdo indexado.
+O Severino BOT carrega e valida os documentos, cria uma base vetorial persistente no ChromaDB, prioriza busca textual precisa por **Assunto/Ementa**, usa busca semântica como fallback e utiliza um modelo acessado pelo OpenRouter para produzir respostas fundamentadas exclusivamente no conteúdo indexado.
 
 ## Principais recursos
 
@@ -15,11 +15,12 @@ O Severino BOT carrega e valida os documentos, cria uma base vetorial persistent
 - ChromaDB persistente;
 - fingerprint dos documentos e parâmetros para reindexação automática;
 - recuperação híbrida por correspondência textual e similaridade semântica;
+- filtragem por cobertura temática para omitir atos relacionados apenas parcialmente à pergunta;
 - listagem rastreável dos documentos relacionados, com número, assunto e URL;
 - respostas limitadas ao contexto documental recuperado;
 - descarte de fontes irrelevantes quando a pergunta está fora do escopo;
 - preparação completa da base antes de o Chainlit disponibilizar a interface;
-- suíte automatizada com 114 testes e cobertura superior a 87%.
+- suíte automatizada com 116 testes e cobertura superior a 87%.
 
 ## Como funciona
 
@@ -50,12 +51,12 @@ O Chainlit só anuncia a interface depois que essa preparação termina com suce
 ```text
 Pergunta
    |
-   +--> busca textual em Assunto e Ementa
+   v
+busca textual em Assunto e Ementa
    |
-   +--> busca semântica no ChromaDB (TOP_K)
-             |
-             v
-      combinação sem duplicidades
+   +--> encontrou tema -> melhor cobertura temática
+   |
+   `--> não encontrou -> busca semântica (TOP_K)
              |
              v
        contexto documental
@@ -67,7 +68,7 @@ Pergunta
  resposta + documentos relacionados
 ```
 
-Correspondências textuais diretas são priorizadas e não ficam limitadas ao `TOP_K`. Isso permite que perguntas amplas, como “O que existe sobre férias?”, recuperem todos os atos explicitamente relacionados ao tema.
+Correspondências textuais diretas com a melhor cobertura temática são priorizadas e não ficam limitadas ao `TOP_K`. Isso permite que perguntas amplas, como “O que existe sobre férias?”, recuperem todos os atos explicitamente relacionados ao tema. Em perguntas específicas, como “licença-maternidade”, atos que mencionam apenas licença genérica são omitidos quando existem documentos que cobrem o tema completo.
 
 Se o contexto não sustentar a resposta, o bot não utiliza conhecimento externo e não apresenta vizinhos vetoriais irrelevantes. Ele informa de forma curta que o conteúdo não foi encontrado na base disponível.
 
@@ -223,8 +224,8 @@ python -m pytest --cov=src/severino_bot --cov-report=term-missing
 
 Resultado da validação final do projeto:
 
-- **114 testes aprovados**;
-- **87,82% de cobertura**;
+- **116 testes aprovados**;
+- **87,73% de cobertura**;
 - limite mínimo de cobertura configurado em **80%**;
 - compilação dos módulos sem erros.
 

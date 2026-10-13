@@ -25,14 +25,18 @@ O retrieval é híbrido:
 
 1. normaliza a pergunta, removendo diferenças de caixa, acentuação e pontuação;
 2. remove termos genéricos da solicitação, preservando o tema pesquisado;
-3. procura todas as correspondências textuais diretas em `Assunto` e `Ementa`;
-4. executa também a busca semântica configurada por `TOP_K`;
-5. prioriza as correspondências textuais;
-6. combina os resultados sem repetir chunks do mesmo documento.
+3. pontua as correspondências textuais em `Assunto` e `Ementa` pela quantidade de termos
+   temáticos cobertos;
+4. quando há correspondência textual, mantém somente os documentos com a maior cobertura da
+   pergunta e não acrescenta vizinhos meramente semânticos;
+5. quando não há correspondência textual, utiliza a busca semântica configurada por `TOP_K`;
+6. remove repetições de chunks pertencentes ao mesmo documento.
 
-Correspondências textuais diretas não ficam limitadas ao `TOP_K`, pois pedidos como “tudo sobre”
-devem listar todos os documentos explicitamente relacionados ao tema. O `TOP_K` continua sendo
-aplicado à parcela semântica da recuperação.
+Correspondências textuais diretas com a melhor cobertura não ficam limitadas ao `TOP_K`, pois
+pedidos como “tudo sobre” devem listar todos os documentos explicitamente relacionados ao tema.
+Em temas compostos, como “licença-maternidade”, um ato que mencione apenas “licença” não acompanha
+os atos que cobrem os dois termos. O `TOP_K` é aplicado quando a recuperação precisa recorrer ao
+fallback semântico.
 
 ## Formato da resposta
 
@@ -109,7 +113,8 @@ reutilizar a mesma conexão e o mesmo modelo de embedding preparados no startup.
 
 1. Uma pergunta contendo “férias” recupera registros em que o termo esteja no `Assunto`.
 2. A mesma pergunta recupera registros em que o termo esteja na `Ementa`.
-3. Todas as correspondências textuais diretas são retornadas, ainda que superem o `TOP_K`.
+3. Todas as correspondências textuais com a melhor cobertura temática são retornadas, ainda que
+   superem o `TOP_K`.
 4. Chunks pertencentes ao mesmo documento não geram itens duplicados na lista.
 5. Cada item apresentado contém o campo número do documento, assunto e URL. Valores ausentes na
    fonte são apresentados como `Não informado`, sem fabricação de dados.
@@ -120,3 +125,5 @@ reutilizar a mesma conexão e o mesmo modelo de embedding preparados no startup.
 10. Uma pergunta aleatória ou fora do escopo recebe apenas a mensagem curta de indisponibilidade.
 11. Resultados vetoriais sem relação real não são apresentados como documentos relacionados.
 12. A resposta fora do escopo esclarece resumidamente quais informações existem na base.
+13. Em perguntas com tema composto, a lista final omite atos que cubram somente uma parte do tema
+    quando existirem documentos com cobertura textual mais completa.

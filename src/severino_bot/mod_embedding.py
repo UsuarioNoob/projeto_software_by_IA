@@ -22,6 +22,8 @@ LOGGER = logging.getLogger(__name__)
 PALAVRAS_IGNORADAS = frozenset(
     {
         "a",
+        "ato",
+        "atos",
         "as",
         "com",
         "da",
@@ -31,6 +33,10 @@ PALAVRAS_IGNORADAS = frozenset(
         "dos",
         "e",
         "em",
+        "falar",
+        "fala",
+        "falam",
+        "falando",
         "informa",
         "informar",
         "me",
@@ -38,10 +44,19 @@ PALAVRAS_IGNORADAS = frozenset(
         "os",
         "para",
         "por",
+        "qual",
+        "quais",
         "que",
         "quero",
+        "relacionado",
+        "relacionados",
+        "relacionada",
+        "relacionadas",
         "sabe",
         "sobre",
+        "trata",
+        "tratam",
+        "tratar",
         "toda",
         "todas",
         "todo",
@@ -256,7 +271,7 @@ def _termos_relevantes(pergunta: str) -> tuple[str, ...]:
 
 
 def _resultados_lexicais(store: VectorStore, pergunta: str) -> list[ResultadoBusca]:
-    """Localiza todas as menções diretas nos campos Assunto e Ementa."""
+    """Localiza menções diretas com a melhor cobertura temática da pergunta."""
     termos = _termos_relevantes(pergunta)
     if not termos:
         return []
@@ -310,7 +325,15 @@ def _resultados_lexicais(store: VectorStore, pergunta: str) -> list[ResultadoBus
             item[1].chunk_id,
         )
     )
-    return [resultado for _, resultado in candidatos]
+    if not candidatos:
+        return []
+
+    melhor_pontuacao = candidatos[0][0]
+    return [
+        resultado
+        for pontuacao, resultado in candidatos
+        if pontuacao == melhor_pontuacao
+    ]
 
 
 def buscar_chunks(
@@ -320,7 +343,7 @@ def buscar_chunks(
     *,
     top_k: int,
 ) -> list[ResultadoBusca]:
-    """Combina menções diretas em Assunto/Ementa com proximidade semântica."""
+    """Prioriza menções textuais precisas e usa proximidade semântica como fallback."""
     pergunta_normalizada = pergunta.strip()
     if not pergunta_normalizada:
         raise ValueError("A pergunta não pode ser vazia.")
@@ -332,6 +355,15 @@ def buscar_chunks(
         raise EmptyVectorStoreError(
             f"A coleção vetorial '{store.nome_colecao}' está vazia."
         )
+
+    resultados_lexicais = _resultados_lexicais(store, pergunta_normalizada)
+    if resultados_lexicais:
+        LOGGER.info(
+            "Retrieval lexical preciso concluído: colecao=%s resultados=%d",
+            store.nome_colecao,
+            len(resultados_lexicais),
+        )
+        return resultados_lexicais
 
     embedding = _gerar_embedding_consulta(modelo_embedding, pergunta_normalizada)
     try:
@@ -382,10 +414,9 @@ def buscar_chunks(
     ]
     resultados_semanticos.sort(key=lambda resultado: resultado.distancia)
 
-    resultados_lexicais = _resultados_lexicais(store, pergunta_normalizada)
     resultados: list[ResultadoBusca] = []
     documentos_adicionados: set[str] = set()
-    for resultado in (*resultados_lexicais, *resultados_semanticos):
+    for resultado in resultados_semanticos:
         documento_id = str(resultado.metadata.get("documento_id") or resultado.chunk_id)
         if documento_id in documentos_adicionados:
             continue
@@ -393,10 +424,9 @@ def buscar_chunks(
         resultados.append(resultado)
 
     LOGGER.info(
-        "Retrieval híbrido concluído: colecao=%s top_k=%d lexicais=%d resultados=%d",
+        "Retrieval semântico concluído: colecao=%s top_k=%d resultados=%d",
         store.nome_colecao,
         top_k,
-        len(resultados_lexicais),
         len(resultados),
     )
     return resultados
