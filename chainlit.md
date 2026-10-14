@@ -9,10 +9,10 @@ Consulte em linguagem natural os atos normativos disponíveis na base documental
 - situação do documento;
 - data e número do diário;
 - link para o documento, quando disponível;
-- documentos relacionados a um tema.
+- síntese objetiva sobre um tema pesquisado.
 
 Experimente perguntar:
 
 > O que existe sobre férias?
 
-As respostas são produzidas exclusivamente a partir dos documentos indexados. Quando a base não possuir informação suficiente, o bot avisará sem apresentar fontes sem relação com a pergunta.
+As respostas são produzidas exclusivamente a partir dos documentos indexados e não incluem uma lista automática de fontes. Quando a base não possuir informação suficiente, o bot avisará sem apresentar documentos sem relação com a pergunta.

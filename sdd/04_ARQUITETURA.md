@@ -84,4 +84,5 @@ Resposta
 Correspondências textuais diretas com maior cobertura temática são priorizadas e podem superar o
 `Top-K`. Quando elas existem, vizinhos puramente semânticos não são acrescentados. A busca semântica,
 limitada pela configuração `TOP_K`, funciona como fallback. O LLM ainda valida se o contexto
-recuperado realmente sustenta a resposta antes de qualquer fonte ser apresentada ao usuário.
+recuperado realmente sustenta a resposta. As fontes permanecem internas ao pipeline e não são
+acrescentadas automaticamente à mensagem apresentada ao usuário.

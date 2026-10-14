@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Iterable
 
 import chainlit as cl
 
@@ -19,7 +18,6 @@ from severino_bot.exceptions import (
     SchemaValidationError,
     VectorStoreError,
 )
-from severino_bot.mod_embedding import ResultadoBusca
 from severino_bot.mod_orquestrator import (
     ResultadoPreparacao,
     preparar_base_vetorial,
@@ -41,53 +39,6 @@ MENSAGEM_PERGUNTA_VAZIA = "Envie uma pergunta sobre os documentos disponíveis."
 _HANDLERS_REGISTRADOS = False
 _SETTINGS_APLICACAO: Settings | None = None
 _PREPARACAO_APLICACAO: ResultadoPreparacao | None = None
-
-
-def _valor_metadata(metadata: dict[str, object], *chaves: str) -> str | None:
-    """Obtém o primeiro valor não vazio entre chaves equivalentes de metadata."""
-    for chave in chaves:
-        valor = metadata.get(chave)
-        if valor is not None and str(valor).strip():
-            return str(valor).strip()
-    return None
-
-
-def formatar_fontes(fontes: Iterable[ResultadoBusca]) -> str:
-    """Lista documentos recuperados com número, URL e assunto."""
-    linhas: list[str] = []
-    documentos_adicionados: set[str] = set()
-    for posicao, fonte in enumerate(fontes, start=1):
-        documento_id = _valor_metadata(fonte.metadata, "documento_id") or fonte.chunk_id
-        if documento_id in documentos_adicionados:
-            continue
-        documentos_adicionados.add(documento_id)
-        tipo = _valor_metadata(fonte.metadata, "tipo", "Tipo")
-        numero = _valor_metadata(
-            fonte.metadata,
-            "numero",
-            "numero_documento",
-            "Número do Documento",
-        )
-        link = _valor_metadata(
-            fonte.metadata,
-            "link_web",
-            "Link web",
-            "link",
-        )
-        assunto = _valor_metadata(fonte.metadata, "assunto", "Assunto")
-        descricao = tipo or f"Fonte {posicao}"
-        numero_item = len(documentos_adicionados)
-        linhas.append(f"{numero_item}. **Documento:** {descricao}")
-        linhas.append(f"   - **Número do documento:** {numero or 'Não informado'}")
-        linhas.append(f"   - **Assunto:** {assunto or 'Não informado'}")
-        if link:
-            linhas.append(f"   - **URL:** [{link}]({link})")
-        else:
-            linhas.append("   - **URL:** Não informada")
-
-    if not linhas:
-        return ""
-    return "### Documentos relacionados\n" + "\n".join(linhas)
 
 
 async def _enviar(conteudo: str) -> None:
@@ -223,11 +174,7 @@ async def processar_mensagem(message: cl.Message) -> None:
         )
         return
 
-    fontes = formatar_fontes(resultado.fontes)
-    conteudo = resultado.resposta
-    if fontes:
-        conteudo = f"{conteudo}\n\n---\n\n{fontes}"
-    await _enviar(conteudo)
+    await _enviar(resultado.resposta)
 
 
 def iniciar_interface() -> None:

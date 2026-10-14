@@ -16,11 +16,12 @@ O Severino BOT carrega e valida os documentos, cria uma base vetorial persistent
 - fingerprint dos documentos e parâmetros para reindexação automática;
 - recuperação híbrida por correspondência textual e similaridade semântica;
 - filtragem por cobertura temática para omitir atos relacionados apenas parcialmente à pergunta;
-- listagem rastreável dos documentos relacionados, com número, assunto e URL;
+- uso interno dos documentos recuperados para fundamentar a resposta, sem exibir uma lista
+  automática de fontes;
 - respostas limitadas ao contexto documental recuperado;
 - descarte de fontes irrelevantes quando a pergunta está fora do escopo;
 - preparação completa da base antes de o Chainlit disponibilizar a interface;
-- suíte automatizada com 116 testes e cobertura superior a 87%.
+- suíte automatizada com 114 testes e cobertura superior a 87%.
 
 ## Como funciona
 
@@ -65,10 +66,14 @@ busca textual em Assunto e Ementa
       OpenRouter / modelo LLM
              |
              v
- resposta + documentos relacionados
+        resposta objetiva
 ```
 
-Correspondências textuais diretas com a melhor cobertura temática são priorizadas e não ficam limitadas ao `TOP_K`. Isso permite que perguntas amplas, como “O que existe sobre férias?”, recuperem todos os atos explicitamente relacionados ao tema. Em perguntas específicas, como “licença-maternidade”, atos que mencionam apenas licença genérica são omitidos quando existem documentos que cobrem o tema completo.
+Correspondências textuais diretas com a melhor cobertura temática são priorizadas e não ficam limitadas ao `TOP_K`. Isso permite que perguntas amplas, como “O que existe sobre férias?”, considerem todos os atos explicitamente relacionados ao tema. Em perguntas específicas, como “licença-maternidade”, atos que mencionam apenas licença genérica são omitidos quando existem documentos que cobrem o tema completo.
+
+Os documentos recuperados permanecem no contexto interno usado pelo modelo, mas a interface não
+acrescenta a seção automática `Documentos relacionados`. Identificadores de atos aparecem somente
+quando forem necessários para responder diretamente ao que o usuário perguntou.
 
 Se o contexto não sustentar a resposta, o bot não utiliza conhecimento externo e não apresenta vizinhos vetoriais irrelevantes. Ele informa de forma curta que o conteúdo não foi encontrado na base disponível.
 
@@ -206,7 +211,8 @@ Qual é a situação do documento 123/2026?
 Mostre os atos relacionados ao assunto informado.
 ```
 
-Perguntas fora do conteúdo indexado recebem uma resposta curta e não exibem fontes irrelevantes.
+As respostas não exibem uma lista automática de fontes. Perguntas fora do conteúdo indexado recebem
+uma resposta curta e também não apresentam documentos irrelevantes.
 
 ## Testes e qualidade
 
@@ -224,8 +230,8 @@ python -m pytest --cov=src/severino_bot --cov-report=term-missing
 
 Resultado da validação final do projeto:
 
-- **116 testes aprovados**;
-- **87,73% de cobertura**;
+- **114 testes aprovados**;
+- **87,24% de cobertura**;
 - limite mínimo de cobertura configurado em **80%**;
 - compilação dos módulos sem erros.
 

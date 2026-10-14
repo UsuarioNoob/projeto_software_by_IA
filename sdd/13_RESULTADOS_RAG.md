@@ -8,7 +8,7 @@ Melhorar respostas para perguntas temáticas amplas, por exemplo:
 
 Quando existirem documentos relacionados, o sistema não deve responder apenas que não possui
 informação. Ele deve recuperar as ocorrências existentes na base, produzir uma síntese baseada
-nelas e apresentar os documentos relacionados de forma rastreável.
+nelas e apresentar somente a resposta objetiva solicitada.
 
 ## Campos pesquisados
 
@@ -33,7 +33,7 @@ O retrieval é híbrido:
 6. remove repetições de chunks pertencentes ao mesmo documento.
 
 Correspondências textuais diretas com a melhor cobertura não ficam limitadas ao `TOP_K`, pois
-pedidos como “tudo sobre” devem listar todos os documentos explicitamente relacionados ao tema.
+pedidos como “tudo sobre” devem considerar todos os documentos explicitamente relacionados ao tema.
 Em temas compostos, como “licença-maternidade”, um ato que mencione apenas “licença” não acompanha
 os atos que cobrem os dois termos. O `TOP_K` é aplicado quando a recuperação precisa recorrer ao
 fallback semântico.
@@ -45,21 +45,9 @@ A resposta deve:
 - usar exclusivamente o contexto recuperado da base documental;
 - sintetizar as informações encontradas em `Assunto` e `Ementa`;
 - para pedidos amplos, considerar todos os documentos recuperados;
-- exibir uma seção `Documentos relacionados`;
-- informar, para cada documento:
-  - tipo e número do documento;
-  - assunto;
-  - URL do campo `Link web`, quando disponível.
-
-Exemplo:
-
-```markdown
-### Documentos relacionados
-1. **Documento:** Portaria
-   - **Número do documento:** 123/2026
-   - **Assunto:** Férias de servidores
-   - **URL:** https://exemplo.test/documento/123
-```
+- não exibir uma seção automática de fontes ou `Documentos relacionados`;
+- mencionar tipo, número, assunto ou URL somente quando esses dados forem necessários para responder
+  diretamente à pergunta do usuário.
 
 ## Ausência de resultados
 
@@ -74,7 +62,7 @@ irrelevantes, o LLM deve validar se o contexto realmente responde à pergunta. Q
 ele deve retornar o sinal interno `[SEM_INFORMACAO_RELEVANTE]`.
 
 O sinal interno não deve ser exibido ao usuário. O orquestrador deve substituí-lo por uma resposta
-curta, remover o contexto e não enviar a seção `Documentos relacionados`:
+curta e remover o contexto:
 
 ```text
 Não encontrei essa informação na base de atos normativos disponível. Posso ajudar com informações
@@ -116,14 +104,13 @@ reutilizar a mesma conexão e o mesmo modelo de embedding preparados no startup.
 3. Todas as correspondências textuais com a melhor cobertura temática são retornadas, ainda que
    superem o `TOP_K`.
 4. Chunks pertencentes ao mesmo documento não geram itens duplicados na lista.
-5. Cada item apresentado contém o campo número do documento, assunto e URL. Valores ausentes na
-   fonte são apresentados como `Não informado`, sem fabricação de dados.
+5. A interface não acrescenta lista automática de documentos, fontes ou URLs à resposta.
 6. A síntese continua limitada ao conteúdo recuperado da base.
 7. O índice anterior é invalidado e reconstruído automaticamente.
 8. A interface somente fica disponível após o ChromaDB estar preparado.
 9. Abrir uma nova conversa não repete a preparação ou a reindexação da base.
 10. Uma pergunta aleatória ou fora do escopo recebe apenas a mensagem curta de indisponibilidade.
-11. Resultados vetoriais sem relação real não são apresentados como documentos relacionados.
+11. Resultados vetoriais sem relação real não são apresentados ao usuário.
 12. A resposta fora do escopo esclarece resumidamente quais informações existem na base.
-13. Em perguntas com tema composto, a lista final omite atos que cubram somente uma parte do tema
-    quando existirem documentos com cobertura textual mais completa.
+13. Em perguntas com tema composto, o contexto final omite atos que cubram somente uma parte do
+    tema quando existirem documentos com cobertura textual mais completa.

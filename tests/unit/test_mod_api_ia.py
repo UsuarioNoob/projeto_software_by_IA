@@ -95,9 +95,11 @@ def test_prompt_instrui_resposta_exclusiva_com_base_no_contexto(
     assert "informação suficiente" in mensagem_sistema.casefold()
     assert "assunto" in mensagem_sistema.casefold()
     assert "ementa" in mensagem_sistema.casefold()
-    assert "url" in mensagem_sistema.casefold()
     assert "[sem_informacao_relevante]" in mensagem_sistema.casefold()
     assert "não liste documentos irrelevantes" in mensagem_sistema.casefold()
+    assert "não acrescente uma seção" in mensagem_sistema.casefold()
+    assert "documentos relacionados" in mensagem_sistema.casefold()
+    assert "automaticamente todos os documentos" in mensagem_sistema.casefold()
 
 
 def test_requisicao_possui_timeout(mocker: pytest.MockFixture) -> None:

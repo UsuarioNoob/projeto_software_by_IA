@@ -121,7 +121,7 @@ async def test_preparar_aplicacao_propaga_falha_de_configuracao(
 
 
 @pytest.mark.asyncio
-async def test_processar_mensagem_responde_e_exibe_fontes(
+async def test_processar_mensagem_exibe_somente_resposta_sem_fontes_automaticas(
     mocker: pytest.MockFixture,
     chainlit_falso: SimpleNamespace,
 ) -> None:
@@ -155,11 +155,10 @@ async def test_processar_mensagem_responde_e_exibe_fontes(
     responder.assert_called_once_with("Qual ato?", preparacao, settings)
     assert chainlit_falso.chamadas_assincronas[0][0] is mod_ui.responder_pergunta
     enviada = chainlit_falso.mensagens[-1]
-    assert "Resposta fundamentada." in enviada
-    assert "**Documento:** Provimento" in enviada
-    assert "**Número do documento:** 360/2026" in enviada
-    assert "Férias de servidores" in enviada
-    assert "https://example.test/360" in enviada
+    assert enviada == "Resposta fundamentada."
+    assert "Documentos relacionados" not in enviada
+    assert "360/2026" not in enviada
+    assert "https://example.test/360" not in enviada
 
 
 @pytest.mark.asyncio
@@ -280,34 +279,6 @@ async def test_preparar_aplicacao_propaga_erros_da_base(
 
     assert mod_ui._SETTINGS_APLICACAO is None
     assert mod_ui._PREPARACAO_APLICACAO is None
-
-
-def test_formatar_fontes_sem_resultados_retorna_vazio() -> None:
-    assert mod_ui.formatar_fontes(()) == ""
-
-
-def test_formatar_fontes_numera_documentos_sequencialmente() -> None:
-    fontes = (
-        ResultadoBusca(
-            chunk_id="ato-1",
-            texto="Conteúdo 1",
-            metadata={"numero": "1/2026", "assunto": "Férias"},
-            distancia=0.1,
-        ),
-        ResultadoBusca(
-            chunk_id="ato-2",
-            texto="Conteúdo 2",
-            metadata={"numero": "2/2026", "assunto": "Férias"},
-            distancia=0.2,
-        ),
-    )
-
-    resultado = mod_ui.formatar_fontes(fontes)
-
-    assert "1. **Documento:** Fonte 1" in resultado
-    assert "**Número do documento:** 1/2026" in resultado
-    assert "2. **Documento:** Fonte 2" in resultado
-    assert "**Número do documento:** 2/2026" in resultado
 
 
 def test_iniciar_interface_registra_handlers_uma_unica_vez(
