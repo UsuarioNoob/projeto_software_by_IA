@@ -86,7 +86,7 @@ def carregar_configuracao(env_file: Path | None = None) -> Settings:
         ),
         chunk_size=_positive_int("CHUNK_SIZE", 512),
         chunk_overlap=_non_negative_int("CHUNK_OVERLAP", 64),
-        top_k=_positive_int("TOP_K", 5),
+        top_k=_positive_int("TOP_K", 10),
         openrouter_api_key=token.strip() if token and token.strip() else None,
         openrouter_model=os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
         openrouter_base_url=os.getenv(

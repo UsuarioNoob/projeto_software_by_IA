@@ -2,7 +2,7 @@
 
 Assistente RAG (*Retrieval-Augmented Generation*) para consultas em linguagem natural sobre atos normativos armazenados em arquivos estruturados.
 
-O Severino BOT carrega e valida os documentos, cria uma base vetorial persistente no ChromaDB, prioriza busca textual precisa por **Assunto/Ementa**, usa busca semântica como fallback e utiliza um modelo acessado pelo OpenRouter para produzir respostas fundamentadas exclusivamente no conteúdo indexado.
+O Severino BOT carrega e valida os documentos, cria uma base vetorial persistente no ChromaDB, combina busca textual por **Assunto/Ementa** com busca semântica e utiliza um modelo acessado pelo OpenRouter para produzir respostas fundamentadas exclusivamente no conteúdo indexado.
 
 ## Principais recursos
 
@@ -15,7 +15,7 @@ O Severino BOT carrega e valida os documentos, cria uma base vetorial persistent
 - ChromaDB persistente;
 - fingerprint dos documentos e parâmetros para reindexação automática;
 - recuperação híbrida por correspondência textual e similaridade semântica;
-- filtragem por cobertura temática para omitir atos relacionados apenas parcialmente à pergunta;
+- combinação de correspondências textuais e resultados semânticos sem duplicidade;
 - uso interno dos documentos recuperados para fundamentar a resposta, sem exibir uma lista
   automática de fontes;
 - respostas limitadas ao contexto documental recuperado;
@@ -55,9 +55,12 @@ Pergunta
    v
 busca textual em Assunto e Ementa
    |
-   +--> encontrou tema -> melhor cobertura temática
+   +--> correspondências textuais
    |
-   `--> não encontrou -> busca semântica (TOP_K)
+   `--> busca semântica (TOP_K)
+             |
+             v
+     combinação sem duplicidades
              |
              v
        contexto documental
@@ -69,7 +72,7 @@ busca textual em Assunto e Ementa
         resposta objetiva
 ```
 
-Correspondências textuais diretas com a melhor cobertura temática são priorizadas e não ficam limitadas ao `TOP_K`. Isso permite que perguntas amplas, como “O que existe sobre férias?”, considerem todos os atos explicitamente relacionados ao tema. Em perguntas específicas, como “licença-maternidade”, atos que mencionam apenas licença genérica são omitidos quando existem documentos que cobrem o tema completo.
+Correspondências textuais diretas são priorizadas e não ficam limitadas ao `TOP_K`. A busca semântica é executada em todas as consultas e acrescenta até o limite configurado, sem repetir documentos já encontrados textualmente. Isso amplia o contexto disponível ao modelo e evita que perguntas sejam bloqueadas por uma correspondência lexical excessivamente restrita.
 
 Os documentos recuperados permanecem no contexto interno usado pelo modelo, mas a interface não
 acrescenta a seção automática `Documentos relacionados`. Identificadores de atos aparecem somente
@@ -151,7 +154,7 @@ Variáveis disponíveis:
 | `EMBEDDING_MODEL` | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` | Modelo local de embeddings. |
 | `CHUNK_SIZE` | `512` | Tamanho máximo dos chunks. |
 | `CHUNK_OVERLAP` | `64` | Sobreposição entre chunks. |
-| `TOP_K` | `5` | Quantidade máxima da parcela semântica da busca. |
+| `TOP_K` | `10` | Quantidade máxima da parcela semântica da busca. |
 | `REQUEST_TIMEOUT_SECONDS` | `30` | Timeout das requisições ao OpenRouter. |
 | `SCHEMA_VERSION` | `1` | Versão externa do contrato documental. |
 | `LOG_LEVEL` | `INFO` | Nível de logging da aplicação. |
@@ -231,7 +234,7 @@ python -m pytest --cov=src/severino_bot --cov-report=term-missing
 Resultado da validação final do projeto:
 
 - **114 testes aprovados**;
-- **87,24% de cobertura**;
+- **87,33% de cobertura**;
 - limite mínimo de cobertura configurado em **80%**;
 - compilação dos módulos sem erros.
 

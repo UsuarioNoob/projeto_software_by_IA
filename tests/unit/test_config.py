@@ -14,7 +14,7 @@ def test_carregar_configuracao_com_valores_padrao() -> None:
     assert settings.chroma_dir == PROJECT_ROOT / "chroma_db"
     assert settings.chunk_size == 512
     assert settings.chunk_overlap == 64
-    assert settings.top_k == 5
+    assert settings.top_k == 10
     assert settings.openrouter_api_key is None
 
 

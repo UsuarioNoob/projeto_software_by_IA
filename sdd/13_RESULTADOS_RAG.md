@@ -25,18 +25,17 @@ O retrieval é híbrido:
 
 1. normaliza a pergunta, removendo diferenças de caixa, acentuação e pontuação;
 2. remove termos genéricos da solicitação, preservando o tema pesquisado;
-3. pontua as correspondências textuais em `Assunto` e `Ementa` pela quantidade de termos
+3. pontua e ordena as correspondências textuais em `Assunto` e `Ementa` pela quantidade de termos
    temáticos cobertos;
-4. quando há correspondência textual, mantém somente os documentos com a maior cobertura da
-   pergunta e não acrescenta vizinhos meramente semânticos;
-5. quando não há correspondência textual, utiliza a busca semântica configurada por `TOP_K`;
+4. executa também a busca semântica configurada por `TOP_K`;
+5. prioriza as correspondências textuais e acrescenta os resultados semânticos;
 6. remove repetições de chunks pertencentes ao mesmo documento.
 
-Correspondências textuais diretas com a melhor cobertura não ficam limitadas ao `TOP_K`, pois
-pedidos como “tudo sobre” devem considerar todos os documentos explicitamente relacionados ao tema.
-Em temas compostos, como “licença-maternidade”, um ato que mencione apenas “licença” não acompanha
-os atos que cobrem os dois termos. O `TOP_K` é aplicado quando a recuperação precisa recorrer ao
-fallback semântico.
+Correspondências textuais diretas não ficam limitadas ao `TOP_K`, pois pedidos como “tudo sobre”
+devem considerar todos os documentos explicitamente relacionados ao tema. O `TOP_K` é aplicado à
+parcela semântica, que é executada mesmo quando existem correspondências textuais. Essa combinação
+fornece contexto mais amplo ao modelo sem alterar a interface, que continua sem lista automática de
+fontes.
 
 ## Formato da resposta
 
@@ -101,8 +100,7 @@ reutilizar a mesma conexão e o mesmo modelo de embedding preparados no startup.
 
 1. Uma pergunta contendo “férias” recupera registros em que o termo esteja no `Assunto`.
 2. A mesma pergunta recupera registros em que o termo esteja na `Ementa`.
-3. Todas as correspondências textuais com a melhor cobertura temática são retornadas, ainda que
-   superem o `TOP_K`.
+3. Todas as correspondências textuais diretas são retornadas, ainda que superem o `TOP_K`.
 4. Chunks pertencentes ao mesmo documento não geram itens duplicados na lista.
 5. A interface não acrescenta lista automática de documentos, fontes ou URLs à resposta.
 6. A síntese continua limitada ao conteúdo recuperado da base.
@@ -112,5 +110,5 @@ reutilizar a mesma conexão e o mesmo modelo de embedding preparados no startup.
 10. Uma pergunta aleatória ou fora do escopo recebe apenas a mensagem curta de indisponibilidade.
 11. Resultados vetoriais sem relação real não são apresentados ao usuário.
 12. A resposta fora do escopo esclarece resumidamente quais informações existem na base.
-13. Em perguntas com tema composto, o contexto final omite atos que cubram somente uma parte do
-    tema quando existirem documentos com cobertura textual mais completa.
+13. A busca semântica é executada e combinada com a textual mesmo quando existem correspondências
+    diretas em `Assunto` ou `Ementa`.

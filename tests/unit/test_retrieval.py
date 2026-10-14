@@ -208,7 +208,7 @@ def test_busca_textual_retorna_todos_documentos_por_assunto_e_ementa(
     assert len(resultados) == 2
 
 
-def test_tema_composto_remove_atos_que_cobrem_apenas_parte_da_pergunta(
+def test_tema_composto_combina_resultados_textuais_e_semanticos(
     chroma_temporario: Path,
 ) -> None:
     modelo = EmbeddingSemanticoControlado()
@@ -257,18 +257,16 @@ def test_tema_composto_remove_atos_que_cobrem_apenas_parte_da_pergunta(
     store = conectar_vector_store(chroma_temporario, "retrieval_tema_composto")
     indexar_chunks(store, chunks, modelo)
 
-    class EmbeddingNaoDeveSerChamado:
-        def get_query_embedding(self, texto: str) -> list[float]:
-            raise AssertionError("A busca semântica não deveria ser executada.")
-
     resultados = buscar_chunks(
         store,
         "Quais atos falam sobre licença-maternidade?",
-        EmbeddingNaoDeveSerChamado(),
+        modelo,
         top_k=4,
     )
 
     assert [resultado.metadata["numero"] for resultado in resultados] == [
         "10/2026",
         "11/2026",
+        "12/2026",
+        "13/2026",
     ]
